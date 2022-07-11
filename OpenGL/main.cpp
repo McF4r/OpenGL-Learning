@@ -53,12 +53,16 @@ int main(void)
     glBindBuffer(GL_ARRAY_BUFFER, buffer);//选择使用的buffer
     glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
     
+    //enable vertex启动vertex
+    glEnableVertexAttribArray(0);
+    
     //vertex属性指针,因为positions只有一个属性,所以只需要调用一次这个函数
     //gen的第几个buffer,第一个所以是0
     //这个属性有两个components所以写2
     //positions中全是float所以用GL_FLOAT
     //是否选择初始化,这里因为position中已经都是float了,所以就不用初始化了
     //vertex中该属性的大小,两个float所以是 4byte * 2 = 8
+    //到达下一个属性需要的byte,因为我们只有一个属性所以就是0,不然的话就是传入(const int*)
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
     
     /* Loop until the user closes the window */
