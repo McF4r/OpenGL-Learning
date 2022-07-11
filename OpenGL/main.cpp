@@ -31,17 +31,45 @@ int main(void)
     unsigned int a;
     glGenBuffers(1, &a);
     
+    //vertex位置
+    float positions[6] = {
+        -0.5f, -0.5f,
+         0.0f,  0.5f,
+         0.5f, -0.5f
+    };
+    
+    //give OpenGL the data
+    //generate一个buffer,给我们一个ID;用于储存buffer的地址
+    //选择使用的buffer
+    //在buffer中存入position(六个浮点数大小的数组)
+    unsigned int buffer;
+    
+    //Specifies the number of buffer object names to be generated.
+    //Specifies an array in which the generated buffer object names are stored.
+    //Buffer object names are unsigned integers.
+    //The value zero is reserved, but there is no default buffer object for each buffer object target.
+    glGenBuffers(1, &buffer);//generate一个buffer,给我们一个ID;用于储存buffer的地址
+    
+    glBindBuffer(GL_ARRAY_BUFFER, buffer);//选择使用的buffer
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+    
+    //vertex属性指针,因为positions只有一个属性,所以只需要调用一次这个函数
+    //gen的第几个buffer,第一个所以是0
+    //这个属性有两个components所以写2
+    //positions中全是float所以用GL_FLOAT
+    //是否选择初始化,这里因为position中已经都是float了,所以就不用初始化了
+    //vertex中该属性的大小,两个float所以是 4byte * 2 = 8
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
+    
     /* Loop until the user closes the window */
     while (!glfwWindowShouldClose(window))
     {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
         
-        glBegin(GL_TRIANGLES);
-        glVertex2f(-0.5f, -0.5f);
-        glVertex2f(0.0f, 0.5f);
-        glVertex2f(0.5f, -0.5f);
-        glEnd();
+        //两种methods来画一个三角形
+        glDrawArrays(GL_TRIANGLES, 0, 3);//从第几个点开始,画几个点
+//        glDrawElements(GL_TRIANGLES, 3, unsigned int, NULL)//几个点,什么类型的输入,还没讲
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
