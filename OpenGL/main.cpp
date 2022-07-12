@@ -130,7 +130,14 @@ int main(void)
     /* Initialize the library */
     if (!glfwInit())
         return -1;
-
+    
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+   #ifdef __APPLE__
+     std::cout << "I'm apple machine" << std::endl;
+     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+   #endif
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
@@ -151,6 +158,11 @@ int main(void)
     //unsigned int a;
     //glGenBuffers(1, &a);
     
+    //And to make the program work with the CORE profile add this line of code before glEnableVertexAttribArray:
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
+    glBindVertexArray(vao);
+    
     //vertex位置
     float positions[6] = {
         -0.5f, -0.5f,
@@ -158,56 +170,81 @@ int main(void)
          0.5f, -0.5f
     };
     
-    /*give OpenGL the data
-    generate一个buffer,给我们一个ID;用于储存buffer的地址
-    选择使用的buffer
-    在buffer中存入position(六个浮点数大小的数组)*/
-    unsigned int buffer;
+//    /*give OpenGL the data
+//    generate一个buffer,给我们一个ID;用于储存buffer的地址
+//    选择使用的buffer
+//    在buffer中存入position(六个浮点数大小的数组)*/
+//    unsigned int buffer;
+//
+//    /*
+//    Specifies the number of buffer object names to be generated.
+//    Specifies an array in which the generated buffer object names are stored.
+//    Buffer object names are unsigned integers.
+//    The value zero is reserved, but there is no default buffer object for each buffer object target.
+//     */
+//    glGenBuffers(1, &buffer);//generate几个buffer,返回一个ID;用于储存buffer的地址
+//
+//    glBindBuffer(GL_ARRAY_BUFFER, buffer);//选择使用的buffer
+//    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
+//
+//
+//
+//    //enable vertex启动vertex
+//    glEnableVertexAttribArray(0);
+//
+//    /*
+//     vertex属性指针,用于指定一个buffer的布局
+//    因为positions只有一个属性,所以只需要调用一次这个函数
+//    gen的第几个buffer,第一个所以是0
+//    这个属性有两个components所以写2
+//    positions中全是float所以用GL_FLOAT
+//    是否选择初始化,这里因为position中已经都是float了,所以就不用初始化了
+//    vertex中该属性的大小,两个float所以是 4byte * 2 = 8
+//    到达下一个属性需要的byte,因为我们只有一个属性所以就是0,不然的话就是传入(const int*)
+//     */
+//    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
     
-    /*
-    Specifies the number of buffer object names to be generated.
-    Specifies an array in which the generated buffer object names are stored.
-    Buffer object names are unsigned integers.
-    The value zero is reserved, but there is no default buffer object for each buffer object target.
-     */
-    glGenBuffers(1, &buffer);//generate一个buffer,给我们一个ID;用于储存buffer的地址
-    
-    glBindBuffer(GL_ARRAY_BUFFER, buffer);//选择使用的buffer
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
-    
-    //enable vertex启动vertex
+    unsigned int VBO, VAO;
+    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, 6*sizeof(float), positions, GL_STATIC_DRAW);
+
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 0);
     
-    /*
-     vertex属性指针,用于指定一个buffer的布局
-    因为positions只有一个属性,所以只需要调用一次这个函数
-    gen的第几个buffer,第一个所以是0
-    这个属性有两个components所以写2
-    positions中全是float所以用GL_FLOAT
-    是否选择初始化,这里因为position中已经都是float了,所以就不用初始化了
-    vertex中该属性的大小,两个float所以是 4byte * 2 = 8
-    到达下一个属性需要的byte,因为我们只有一个属性所以就是0,不然的话就是传入(const int*)
-     */
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-    
-    std::string vertexShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(1.0, 0.0,0.0, 1.0);\n"
-        "}\n";
+//    std::string vertexShader =
+//        "#version 330 core\n"
+//        "\n"
+//        "layout(location = 0) in vec4 position;\n"
+//        "\n"
+//        "void main()\n"
+//        "{\n"
+//        "   gl_Position = position;\n"
+//        "}\n";
+//    std::string fragmentShader =
+//        "#version 330 core\n"
+//        "\n"
+//        "layout(location = 0) out vec4 position;\n"
+//        "\n"
+//        "void main()\n"
+//        "{\n"
+//        "   color = vec4(1.0, 0.0,0.0, 1.0);\n"
+//        "}\n";
+
+    std::string vertexShader = "#version 330 core\n"
+      "layout (location = 0) in vec4 position;\n"
+      "void main()\n"
+      "{\n"
+      "   gl_Position = position;\n"
+      "}\0";
+    std::string fragmentShader = "#version 330 core\n"
+      "out vec4 FragColor;\n"
+      "void main()\n"
+      "{\n"
+      "   FragColor = vec4(1.0f, 0.0, 0.0, 0.5f);\n"
+      "}\n\0";
     
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
     glUseProgram(shader);
