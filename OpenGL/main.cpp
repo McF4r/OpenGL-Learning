@@ -158,11 +158,6 @@ int main(void)
     //unsigned int a;
     //glGenBuffers(1, &a);
     
-    //And to make the program work with the CORE profile add this line of code before glEnableVertexAttribArray:
-    unsigned int vao;
-    glGenVertexArrays(1, &vao);
-    glBindVertexArray(vao);
-    
     //vertex位置
     float positions[6] = {
         -0.5f, -0.5f,
@@ -207,44 +202,32 @@ int main(void)
     unsigned int VBO, VAO;
     glGenBuffers(1, &VBO);
     glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
     glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, 6*sizeof(float), positions, GL_STATIC_DRAW);
+    glBindVertexArray(VAO);
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float)*2, 0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
     
-//    std::string vertexShader =
-//        "#version 330 core\n"
-//        "\n"
-//        "layout(location = 0) in vec4 position;\n"
-//        "\n"
-//        "void main()\n"
-//        "{\n"
-//        "   gl_Position = position;\n"
-//        "}\n";
-//    std::string fragmentShader =
-//        "#version 330 core\n"
-//        "\n"
-//        "layout(location = 0) out vec4 position;\n"
-//        "\n"
-//        "void main()\n"
-//        "{\n"
-//        "   color = vec4(1.0, 0.0,0.0, 1.0);\n"
-//        "}\n";
+    std::string vertexShader =
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) in vec4 position;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = position;\n"
+        "}\n";
+    std::string fragmentShader =
+        "#version 330 core\n"
+        "\n"
+        "layout(location = 0) out vec4 color;\n"
+        "\n"
+        "void main()\n"
+        "{\n"
+        "   color = vec4(1.0, 0.0,0.0, 1.0);\n"
+        "}\n";
 
-    std::string vertexShader = "#version 330 core\n"
-      "layout (location = 0) in vec4 position;\n"
-      "void main()\n"
-      "{\n"
-      "   gl_Position = position;\n"
-      "}\0";
-    std::string fragmentShader = "#version 330 core\n"
-      "out vec4 FragColor;\n"
-      "void main()\n"
-      "{\n"
-      "   FragColor = vec4(1.0f, 0.0, 0.0, 0.5f);\n"
-      "}\n\0";
     
     unsigned int shader = CreateShader(vertexShader, fragmentShader);
     glUseProgram(shader);
