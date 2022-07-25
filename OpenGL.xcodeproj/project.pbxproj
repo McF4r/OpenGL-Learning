@@ -13,6 +13,7 @@
 		46281FEB287AA16C00A17453 /* libglfw.3.3.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 46281FE5287AA09D00A17453 /* libglfw.3.3.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		46D2FAAE287AE2B300AA3805 /* libGLEW.2.2.0.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 46D2FAAB287AE17A00AA3805 /* libGLEW.2.2.0.dylib */; };
 		46D2FAB0287AE2E900AA3805 /* libGLEW.2.2.0.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 46D2FAAF287AE2E900AA3805 /* libGLEW.2.2.0.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		46FC1AEC288EDBE000BB7A8B /* Basic.shader in Sources */ = {isa = PBXBuildFile; fileRef = 46FC1AEB288EDBE000BB7A8B /* Basic.shader */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -41,11 +42,12 @@
 
 /* Begin PBXFileReference section */
 		46281FD8287AA00700A17453 /* OpenGL */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OpenGL; sourceTree = BUILT_PRODUCTS_DIR; };
-		46281FDB287AA00700A17453 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		46281FDB287AA00700A17453 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = OpenGL/main.cpp; sourceTree = SOURCE_ROOT; wrapsLines = 0; };
 		46281FE3287AA08E00A17453 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		46281FE5287AA09D00A17453 /* libglfw.3.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.3.dylib; path = ../../../../../opt/homebrew/Cellar/glfw/3.3.7/lib/libglfw.3.3.dylib; sourceTree = "<group>"; };
 		46D2FAAB287AE17A00AA3805 /* libGLEW.2.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.2.2.0.dylib; path = ../../../../opt/homebrew/Cellar/glew/2.2.0_1/lib/libGLEW.2.2.0.dylib; sourceTree = "<group>"; };
 		46D2FAAF287AE2E900AA3805 /* libGLEW.2.2.0.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLEW.2.2.0.dylib; path = ../../../../opt/homebrew/Cellar/glew/2.2.0_1/lib/libGLEW.2.2.0.dylib; sourceTree = "<group>"; };
+		46FC1AEB288EDBE000BB7A8B /* Basic.shader */ = {isa = PBXFileReference; lastKnownFileType = text; name = Basic.shader; path = "/Users/mcf4r/Dev/OpenGL for Xcode(GLEW+GLFW)/OpenGL/res/shader/Basic.shader"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -83,6 +85,7 @@
 		46281FDA287AA00700A17453 /* OpenGL */ = {
 			isa = PBXGroup;
 			children = (
+				46FC1AE9288EDBA600BB7A8B /* res */,
 				46281FDB287AA00700A17453 /* main.cpp */,
 			);
 			path = OpenGL;
@@ -96,6 +99,22 @@
 				46281FE3287AA08E00A17453 /* OpenGL.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		46FC1AE9288EDBA600BB7A8B /* res */ = {
+			isa = PBXGroup;
+			children = (
+				46FC1AEA288EDBB000BB7A8B /* shader */,
+			);
+			path = res;
+			sourceTree = "<group>";
+		};
+		46FC1AEA288EDBB000BB7A8B /* shader */ = {
+			isa = PBXGroup;
+			children = (
+				46FC1AEB288EDBE000BB7A8B /* Basic.shader */,
+			);
+			path = shader;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -156,6 +175,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				46FC1AEC288EDBE000BB7A8B /* Basic.shader in Sources */,
 				46281FDC287AA00700A17453 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

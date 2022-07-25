@@ -1,125 +1,80 @@
-#define GL_SILENCE_DEPRECATION ; //用于取消deprecated警告
-#include <GL/glew.h> //要放在最前面
-#include <GLFW/glfw3.h>
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
+#include "GL/glew.h"
+#include "GLFW/glfw3.h"
 
+struct ShaderProgramSource
+{
+    std::string VertexSource;
+    std::string FragmentSource;
+};
+
+static ShaderProgramSource ParseShader(const std::string& filePath)
+{
+    std::ifstream stream(filePath); /* 这里没判断文件是否能正常打开 is_open */
+    enum class ShaderType {
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    std::string line;
+    std::stringstream ss[2];
+    ShaderType type = ShaderType::NONE;
+    while (getline(stream, line)) {
+        if (line.find("#shader") != std::string::npos) { /* 找到#shader标记 */
+            if (line.find("vertex") != std::string::npos) { /* 顶点着色器标记 */
+                type = ShaderType::VERTEX;
+            } else if (line.find("fragment") != std::string::npos) { /* 片段着色器标记 */
+                type = ShaderType::FRAGMENT;
+            }
+        }  else {
+            ss[(int)type] << line << '\n';
+        }
+    }
+    return { ss[0].str(),ss[1].str() };
+}
 
 static unsigned int CompileShader(unsigned int type, const std::string& source)
 {
-    //这是编译一个着色器需要写的所有代码
-    
-    //指明要生成的shader类型
-    unsigned int id = glCreateShader(type);
-    
-    //返回一个以null结尾的不可变数组指针, 指向数组的第一个元素的地址, src就是一个raw string(原生的纯string)
-    const char* src = source.c_str();// == &source[0]
-    
-    /*
-    glShaderSource — Replaces the source code in a shader object 替换shader对象的source code
-        shader
-            Specifies the handle of the shader object whose source code is to be replaced. 指明被替换源码的shader对象的handle
-        count
-            Specifies the number of elements in the string and length arrays. 指明数组中source code的数量
-        string
-            Specifies an array of pointers to strings containing the source code to be loaded into the shader. 指明指向source code字符串的指针数组
-        length
-            Specifies an array of string lengths. 指明一个字符串长度数组
-     */
-    glShaderSource(id, 1, &src, nullptr);
-    
-    //Compiles the source code strings that have been stored in the shader object specified by shader.
-    glCompileShader(id);
-    
-    //Error handling
+    unsigned int id = glCreateShader(type); /* 创建对应类型的着色器 */
+    const char* src = source.c_str();
+    glShaderSource(id, 1, &src, nullptr); /* 设置着色器源码 */
+    glCompileShader(id); /* 编译着色器 */
+
+    /* 编译错误处理 */
     int result;
-    
-    /*
-    glGetShaderiv - returns in params the value of a parameter for a specific shader object.
-        GL_SHADER_TYPE
-            GL_VERTEX_SHADER if shader is a vertex shader object,
-            GL_GEOMETRY_SHADER if shader is a geometry shader object, and
-            GL_FRAGMENT_SHADER if shader is a fragment shader object.
-        GL_DELETE_STATUS
-            GL_TRUE if shader is currently flagged for deletion, and
-            GL_FALSE otherwise.
-        GL_COMPILE_STATUS
-            GL_TRUE if the last compile operation on shader was successful, and
-            GL_FALSE otherwise.
-        GL_INFO_LOG_LENGTH
-            the size of the character buffer required to store the information log including the null termination character
-            If shader has no information log, a value of 0 is returned.
-        GL_SHADER_SOURCE_LENGTH
-            the size of the character buffer required to store the shader source, including the null termination character.
-            If no source code exists, 0 is returned.
-     */
-    glGetShaderiv(id, GL_COMPILE_STATUS, &result);
-    if (result == GL_FALSE)
-    {
+    glGetShaderiv(id, GL_COMPILE_STATUS, &result); // 获取当前着色器编译状态
+    if (result == GL_FALSE) {
         int length;
-        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length);
-        char* message = (char*)alloca(length * sizeof(char));
-        
-        /*
-        shader
-            Specifies the shader object whose information log is to be queried.
-        maxLength
-            Specifies the size of the character buffer for storing the returned information log.
-        length
-            Returns the length of the string returned in infoLog (excluding the null terminator).
-        infoLog
-            Specifies an array of characters that is used to return the information log.
-        */
-        glGetShaderInfoLog(id, length, &length, message);
-        
-        std::cout << "Failed to compile" <<
-            (type == GL_VERTEX_SHADER ? "vertex" : "fragment")
-            << "shader!" << std::endl;
-        std::cout << message << std::endl;
-        glDeleteShader(0);
+        glGetShaderiv(id, GL_INFO_LOG_LENGTH, &length); // 获取日志长度
+        char* msg = (char*)alloca(length * sizeof(char)); /* Cherno这里采用的alloca, 根据IDE提示, 我这里改成了_malloca函数 */
+        glGetShaderInfoLog(id, length, &length, msg); // 获取日志信息
+        std::cout << "Failed to compile " << (type == GL_VERTEX_SHADER ? "vertex":"fragment") << " shader!" << std::endl;
+        std::cout << msg << std::endl;
+        glDeleteShader(id); // 删除着色器
+        return 0;
     }
-    
-    //返回id,赋值给vs
+
     return id;
 }
 
-    // 这个函数的参数是传入vertexshader和fragmentshader的source code
-static unsigned int CreateShader(const std::string& vertexShader, std::string& fragmentShader)
+static int CreateShader(const std::string& vertexShader, const std::string& fragmentShader)
 {
+    unsigned int program = glCreateProgram(); /* 创建程序 */
+    unsigned int vs = CompileShader(GL_VERTEX_SHADER, vertexShader);
+    unsigned int fs = CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
     
-    /*
-    creates an empty program object and returns a non-zero value by which it can be referenced
-    A program object is an object to which shader objects can be attached.
-    This provides a mechanism to specify the shader objects that will be linked to create a program.
-    It also provides a means for checking the compatibility of the shaders that will be used to create a program
-    */
-    unsigned int program = glCreateProgram();
-    unsigned int vs =  CompileShader(GL_VERTEX_SHADER, vertexShader);
-    unsigned int fs =  CompileShader(GL_FRAGMENT_SHADER, fragmentShader);
-    
-    /*
-     Attaches a shader object to a program object
-        program
-            Specifies the program object to which a shader object will be attached.
-        shader
-            Specifies the shader object that is to be attached.
-     */
+    /* 将着色器附加到程序上 */
     glAttachShader(program, vs);
     glAttachShader(program, fs);
-    
-    //Links a program object
-    glLinkProgram(program);
-    
-    /*Validates a program object
-    checks to see whether the executables contained in program can execute given the current OpenGL state.
-    The information generated by the validation process will be stored in program's information log.*/
-    glValidateProgram(program);
-    
-    //因为shader已经被link到program中了
-    //所以可以delete了
-    //不用detach是因为detach删除源码, 不利于后期debug
+    glLinkProgram(program); /* 链接程序 */
+    glValidateProgram(program); /* 验证 */
+
+    /* 删除着色器 */
     glDeleteShader(vs);
     glDeleteShader(fs);
-    
+
     return program;
 }
 
@@ -128,119 +83,51 @@ int main(void)
     GLFWwindow* window;
 
     /* Initialize the library */
-    if (!glfwInit())
-        return -1;
-    
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-   #ifdef __APPLE__
-     std::cout << "I'm apple machine" << std::endl;
-     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-   #endif
+    if (!glfwInit()) return -1;
 
     /* Create a windowed mode window and its OpenGL context */
     window = glfwCreateWindow(640, 480, "Hello World", NULL, NULL);
-    if (!window)
-    {
+    if (!window) {
         glfwTerminate();
         return -1;
     }
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-    
-    //这个函数需在一个opengl rendering context被渲染之后才能被call,也就是上面这个glfwMakeContextCurrent
-    if(glewInit() != GLEW_OK)
-        std::cout << "Error" << std::endl;
-    
-    //某一个新OpenGL函数
-    //unsigned int a;
-    //glGenBuffers(1, &a);
-    
-    //vertex位置
+
+    GLenum err = glewInit();
+    if (GLEW_OK != err) {
+        std::cout << "Error: " << glewGetErrorString(err) << std::endl;
+    }
+    std::cout << "Status: Using GLEW " << glewGetString(GLEW_VERSION) << std::endl;
+    std::cout << "Status: Using GL " << glGetString(GL_VERSION) << std::endl;
+
+    /* 顶点位置浮点型数组 */
     float positions[6] = {
         -0.5f, -0.5f,
-         0.0f,  0.5f,
-         0.5f, -0.5f
+        0.0f, 0.5f,
+        0.5f, -0.5f
     };
-    
-//    /*give OpenGL the data
-//    generate一个buffer,给我们一个ID;用于储存buffer的地址
-//    选择使用的buffer
-//    在buffer中存入position(六个浮点数大小的数组)*/
-//    unsigned int buffer;
-//
-//    /*
-//    Specifies the number of buffer object names to be generated.
-//    Specifies an array in which the generated buffer object names are stored.
-//    Buffer object names are unsigned integers.
-//    The value zero is reserved, but there is no default buffer object for each buffer object target.
-//     */
-//    glGenBuffers(1, &buffer);//generate几个buffer,返回一个ID;用于储存buffer的地址
-//
-//    glBindBuffer(GL_ARRAY_BUFFER, buffer);//选择使用的buffer
-//    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
-//
-//
-//
-//    //enable vertex启动vertex
-//    glEnableVertexAttribArray(0);
-//
-//    /*
-//     vertex属性指针,用于指定一个buffer的布局
-//    因为positions只有一个属性,所以只需要调用一次这个函数
-//    gen的第几个buffer,第一个所以是0
-//    这个属性有两个components所以写2
-//    positions中全是float所以用GL_FLOAT
-//    是否选择初始化,这里因为position中已经都是float了,所以就不用初始化了
-//    vertex中该属性的大小,两个float所以是 4byte * 2 = 8
-//    到达下一个属性需要的byte,因为我们只有一个属性所以就是0,不然的话就是传入(const int*)
-//     */
-//    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(float) * 2, 0);
-    
-    unsigned int VBO, VAO;
-    glGenBuffers(1, &VBO);
-    glGenVertexArrays(1, &VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBindVertexArray(VAO);
-    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW);
 
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0);
+    unsigned int buffer;
+    glGenBuffers(1, &buffer); /* 生成缓冲区 */
+    glBindBuffer(GL_ARRAY_BUFFER, buffer); /* 绑定缓冲区 */
+    glBufferData(GL_ARRAY_BUFFER, 6 * sizeof(float), positions, GL_STATIC_DRAW); /* 设置缓冲区数据 */
     
-    std::string vertexShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) in vec4 position;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = position;\n"
-        "}\n";
-    std::string fragmentShader =
-        "#version 330 core\n"
-        "\n"
-        "layout(location = 0) out vec4 color;\n"
-        "\n"
-        "void main()\n"
-        "{\n"
-        "   color = vec4(1.0, 0.0,0.0, 1.0);\n"
-        "}\n";
+    glEnableVertexAttribArray(0); /* 激活顶点属性-索引0-位置 */
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof(float), 0); /* 设置顶点属性-索引0 */
 
-    
-    unsigned int shader = CreateShader(vertexShader, fragmentShader);
-    glUseProgram(shader);
-    
+    /* 从文件中解析着色器源码 */
+    ShaderProgramSource source = ParseShader("res/shaders/Basic.shader");
+    unsigned int shader = CreateShader(source.VertexSource, source.FragmentSource);
+    glUseProgram(shader); /* 使用着色器程序 */
+
     /* Loop until the user closes the window */
-    while (!glfwWindowShouldClose(window))
-    {
+    while (!glfwWindowShouldClose(window)) {
         /* Render here */
         glClear(GL_COLOR_BUFFER_BIT);
-        
-        //两种methods来画一个三角形
-        glDrawArrays(GL_TRIANGLES, 0, 3);//从第几个点开始,画几个点
-        //glDrawElements(GL_TRIANGLES, 3, unsigned int, NULL)//几个点,什么类型的输入,还没讲
+
+        glDrawArrays(GL_TRIANGLES, 0, 3); // 绘制
 
         /* Swap front and back buffers */
         glfwSwapBuffers(window);
@@ -248,6 +135,7 @@ int main(void)
         /* Poll for and process events */
         glfwPollEvents();
     }
+    glDeleteProgram(shader); /* 删除着色器程序 */
 
     glfwTerminate();
     return 0;
